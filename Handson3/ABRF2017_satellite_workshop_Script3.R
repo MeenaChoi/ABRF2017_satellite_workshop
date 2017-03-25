@@ -152,11 +152,11 @@ TCGA.CRC <- read.csv("TCGA_sample_information.csv")
 View(TCGA.CRC)
 
 #`colnames` is short for column names. 
-#
 colnames(TCGA.CRC)
 
 # Select columns from TCGA dataset: 
 # We are interested in the cancer type and history of colon polyps
+# Untreated colorectal polyps can develop into colorectal cancer
 TCGA.CRC.gc <- TCGA.CRC[, c('Cancer', 'history_of_colon_polyps')]
 nrow(TCGA.CRC.gc)
 
@@ -168,7 +168,33 @@ ov
 #dotchart
 dotchart(t(ov), xlab="Observed counts")
 
-#Hypothesis: whether the proportion of patients who have history of colon polyps in the patients with colon cancer is different from that in the patients with rectal cancer
+##Hypothesis: whether the proportion of patients who have history of colon polyps in the patients with colon cancer is different from that in the patients with rectal cancer
+#p-value
+z.prop.p = function( x1, x2, n1, n2){
+    pi_1 <- x1/n1
+    pi_2 <- x2/n2
+    numerator = pi_1 - pi_2
+    denominator = sqrt(((pi_1*(1-pi_1))/n1 + (pi_2*(1-pi_2))/n2))
+    stat <- numerator/denominator
+    pvalue <- 2*(1 - pnorm(abs(stat)))
+    return(pvalue)
+}
+
+#confidence interval
+z.prop.ci = function( x1, x2, n1, n2, alpha = 0.05){
+  pi_1 <- x1/n1
+  pi_2 <- x2/n2
+  numerator = pi_1 - pi_2
+  denominator = sqrt(((pi_1*(1-pi_1))/n1 + (pi_2*(1-pi_2))/n2))
+  cri_value <- qnorm(1-alpha/2)
+  prop.ci = c(numerator + cri_value*denominator, numerator - cri_value*denominator)
+  return(prop.ci)
+}
+
+z.prop.p(ov[1,1], ov[2,1], sum(ov[1,]), sum(ov[2,]))
+z.prop.ci(ov[1,1], ov[2,1], sum(ov[1,]), sum(ov[2,]))
+
+# Chi-squared test
 ?prop.test
 pt <- prop.test(ov)
 pt
